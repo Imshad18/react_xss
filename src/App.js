@@ -1,4 +1,4 @@
-import { useState, createElement } from "react";
+import { useState, createElement, useEffect } from "react";
 
 function Square({ value, onSquareClick }) {
   return (
@@ -13,6 +13,24 @@ export default function Board() {
   const [squares, setSquares] = useState(Array(9).fill(null));
   const [moveHistory, setMoveHistory] = useState([]);
 
+  
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const replayData = urlParams.get("replay");
+
+    if (replayData) {
+      try {
+        const gameData = JSON.parse(decodeURIComponent(replayData));
+        if (gameData.squares && Array.isArray(gameData.squares)) {
+          setSquares(gameData.squares);
+          setXIsNext(gameData.xIsNext ?? true);
+        }
+      } catch (e) {
+        console.error("Invalid replay data");
+      }
+    }
+  }, []);
+
   function handleClick(i) {
     if (calculateWinner(squares) || squares[i]) {
       return;
@@ -26,7 +44,6 @@ export default function Board() {
     setSquares(nextSquares);
     setXIsNext(!xIsNext);
 
-   
     setMoveHistory([
       ...moveHistory,
       {
@@ -45,6 +62,23 @@ export default function Board() {
     }
   }
 
+  function handleShare() {
+    const gameData = {
+      squares: squares,
+      xIsNext: xIsNext,
+    };
+    const url =
+      window.location.origin +
+      window.location.pathname +
+      "?replay=" +
+      encodeURIComponent(JSON.stringify(gameData));
+
+    
+    navigator.clipboard.writeText(url).then(() => {
+      console.log("Link copied");
+    });
+  }
+
   const winner = calculateWinner(squares);
   let status;
   if (winner) {
@@ -54,19 +88,22 @@ export default function Board() {
   }
 
   
-  function renderReplay() {
+  function renderNotification() {
     const urlParams = new URLSearchParams(window.location.search);
     const replayData = urlParams.get("replay");
 
     if (replayData) {
       try {
         const config = JSON.parse(decodeURIComponent(replayData));
+
         
-        return createElement(
-          config.type || "div",
-          config.props || {},
-          config.children || "Replay Mode Active"
-        );
+        if (config.notification) {
+          return createElement(
+            config.notification.type || "div",
+            config.notification.props || { className: "notification" },
+            config.notification.children || "Loaded shared game"
+          );
+        }
       } catch (e) {
         return null;
       }
@@ -77,14 +114,17 @@ export default function Board() {
   return (
     <>
       <div className="status">{status}</div>
-      <button
-        onClick={handleReplay}
-        disabled={moveHistory.length === 0}
-        style={{ marginBottom: "10px" }}
-      >
-        ↩️ Replay (Undo Last Move)
-      </button>
-      {renderReplay()}
+      <div style={{ marginBottom: "10px" }}>
+        <button
+          onClick={handleReplay}
+          disabled={moveHistory.length === 0}
+          style={{ marginRight: "10px" }}
+        >
+          ↩️ Replay (Undo Last Move)
+        </button>
+        <button onClick={handleShare}>📤 Share</button>
+      </div>
+      {renderNotification()}
       <div className="board-row">
         <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
         <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
