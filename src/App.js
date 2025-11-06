@@ -120,7 +120,7 @@ export default function Board() {
           disabled={moveHistory.length === 0}
           style={{ marginRight: "10px" }}
         >
-          ↩️ Replay (Undo Last Move)
+          Replay (Undo Last Move)
         </button>
         <button onClick={handleShare}>📤 Share</button>
       </div>
