@@ -1,6 +1,6 @@
-import { useState, createElement } from 'react';
+import { useState, createElement } from "react";
 
-function Square({value, onSquareClick}) {
+function Square({ value, onSquareClick }) {
   return (
     <button className="square" onClick={onSquareClick}>
       {value}
@@ -19,42 +19,53 @@ export default function Board() {
     }
     const nextSquares = squares.slice();
     if (xIsNext) {
-      nextSquares[i] = 'X';
+      nextSquares[i] = "X";
     } else {
-      nextSquares[i] = 'O';
+      nextSquares[i] = "O";
     }
     setSquares(nextSquares);
     setXIsNext(!xIsNext);
-    
+
     // Track moves for replay feature
-    setMoveHistory([...moveHistory, {
-      player: xIsNext ? 'X' : 'O',
-      position: i,
-      timestamp: Date.now()
-    }]);
+    setMoveHistory([
+      ...moveHistory,
+      {
+        squares: squares.slice(),
+        xIsNext: xIsNext,
+      },
+    ]);
+  }
+
+  function handleReplay() {
+    if (moveHistory.length > 0) {
+      const previous = moveHistory[moveHistory.length - 1];
+      setSquares(previous.squares);
+      setXIsNext(previous.xIsNext);
+      setMoveHistory(moveHistory.slice(0, -1));
+    }
   }
 
   const winner = calculateWinner(squares);
   let status;
   if (winner) {
-    status = 'Winner: ' + winner;
+    status = "Winner: " + winner;
   } else {
-    status = 'Next player: ' + (xIsNext ? 'X' : 'O');
+    status = "Next player: " + (xIsNext ? "X" : "O");
   }
 
   // Game replay feature - VULNERABLE
   function renderReplay() {
     const urlParams = new URLSearchParams(window.location.search);
-    const replayData = urlParams.get('replay');
-    
+    const replayData = urlParams.get("replay");
+
     if (replayData) {
       try {
         const config = JSON.parse(decodeURIComponent(replayData));
         // VULNERABLE: Directly using user-controlled config to create elements
         return createElement(
-          config.type || 'div',
+          config.type || "div",
           config.props || {},
-          config.children || 'Replay Mode Active'
+          config.children || "Replay Mode Active"
         );
       } catch (e) {
         return null;
@@ -66,6 +77,13 @@ export default function Board() {
   return (
     <>
       <div className="status">{status}</div>
+      <button
+        onClick={handleReplay}
+        disabled={moveHistory.length === 0}
+        style={{ marginBottom: "10px" }}
+      >
+        ↩️ Replay (Undo Last Move)
+      </button>
       {renderReplay()}
       <div className="board-row">
         <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
