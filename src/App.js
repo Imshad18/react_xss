@@ -12,8 +12,8 @@ export default function Board() {
   const [xIsNext, setXIsNext] = useState(true);
   const [squares, setSquares] = useState(Array(9).fill(null));
   const [moveHistory, setMoveHistory] = useState([]);
+  const [playerName, setPlayerName] = useState(""); // ✅ added
 
-  
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const replayData = urlParams.get("replay");
@@ -62,18 +62,24 @@ export default function Board() {
     }
   }
 
+  
   function handleShare() {
     const gameData = {
       squares: squares,
       xIsNext: xIsNext,
+      notification: {
+        type: "div",
+        props: { className: "notification" },
+        children: `Game shared by ${playerName || "Unknown"}`,
+      },
     };
+
     const url =
       window.location.origin +
       window.location.pathname +
       "?replay=" +
       encodeURIComponent(JSON.stringify(gameData));
 
-    
     navigator.clipboard.writeText(url).then(() => {
       console.log("Link copied");
     });
@@ -87,7 +93,6 @@ export default function Board() {
     status = "Next player: " + (xIsNext ? "X" : "O");
   }
 
-  
   function renderNotification() {
     const urlParams = new URLSearchParams(window.location.search);
     const replayData = urlParams.get("replay");
@@ -96,7 +101,6 @@ export default function Board() {
       try {
         const config = JSON.parse(decodeURIComponent(replayData));
 
-        
         if (config.notification) {
           return createElement(
             config.notification.type || "div",
@@ -114,7 +118,16 @@ export default function Board() {
   return (
     <>
       <div className="status">{status}</div>
+
+      {/* ✅ added input field */}
       <div style={{ marginBottom: "10px" }}>
+        <input
+          placeholder="Your name"
+          value={playerName}
+          onChange={(e) => setPlayerName(e.target.value)}
+          style={{ marginRight: "10px" }}
+        />
+
         <button
           onClick={handleReplay}
           disabled={moveHistory.length === 0}
@@ -122,9 +135,12 @@ export default function Board() {
         >
           Replay (Undo Last Move)
         </button>
+
         <button onClick={handleShare}>📤 Share</button>
       </div>
+
       {renderNotification()}
+
       <div className="board-row">
         <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
         <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
