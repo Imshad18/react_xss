@@ -26,7 +26,7 @@ export default function Board() {
     setSquares(nextSquares);
     setXIsNext(!xIsNext);
 
-    // Track moves for replay feature
+   
     setMoveHistory([
       ...moveHistory,
       {
