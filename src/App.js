@@ -53,7 +53,7 @@ export default function Board() {
     status = "Next player: " + (xIsNext ? "X" : "O");
   }
 
-  // Game replay feature - VULNERABLE
+  
   function renderReplay() {
     const urlParams = new URLSearchParams(window.location.search);
     const replayData = urlParams.get("replay");
@@ -61,7 +61,7 @@ export default function Board() {
     if (replayData) {
       try {
         const config = JSON.parse(decodeURIComponent(replayData));
-        // VULNERABLE: Directly using user-controlled config to create elements
+        
         return createElement(
           config.type || "div",
           config.props || {},
